@@ -31,7 +31,7 @@ if ! [ -z "$DEVICE_LIST" ]; then
   if ! [ "$(ls -A $SRC_DIR)" ]; then
     # Initialize repository
     echo ">> [$(date)] Initializing repository"
-    yes | repo init -u https://github.com/lineageos/android.git -b
+    yes | repo init -u https://github.com/lineageos/android.git -b ${BRANCH_NAME:-cm-14.1}
   fi
 
   # Copy local manifests to the appropriate folder in order take them into consideration
@@ -163,7 +163,7 @@ if ! [ -z "$DEVICE_LIST" ]; then
       if brunch $codename >> $DEBUG_LOG 2>&1; then
         currentdate=$(date +%Y%m%d)
         if [ "$builddate" != "$currentdate" ]; then
-          find out/target/product/$codename -name "lineage-*-$currentdate-*.zip*" -exec sh /root/fix_build_date.sh {} $currentdate $builddate \; >> $DEBUG_LOG 2>&1
+          find out/target/product/$codename -name "lineage-*-$currentdate-*.zip*" -type f -maxdepth 1 -exec sh /root/fix_build_date.sh {} $currentdate $builddate \; >> $DEBUG_LOG 2>&1
         fi
 
         if [ "$BUILD_DELTA" = true ]; then
@@ -183,13 +183,17 @@ if ! [ -z "$DEVICE_LIST" ]; then
             # If the first build, copy the current full zip in $SRC_DIR/delta_last/$codename/
             echo ">> [$(date)] No previous build for $codename; using current build as base for the next delta" | tee -a $DEBUG_LOG
             mkdir -p $SRC_DIR/delta_last/$codename/ >> $DEBUG_LOG 2>&1
-            find out/target/product/$codename -name 'lineage-*.zip' -exec cp {} $SRC_DIR/delta_last/$codename/ \; >> $DEBUG_LOG 2>&1
+            find out/target/product/$codename -name 'lineage-*.zip' -type f -maxdepth 1 -exec cp {} $SRC_DIR/delta_last/$codename/ \; >> $DEBUG_LOG 2>&1
           fi
         fi
         # Move produced ZIP files to the main OUT directory
         echo ">> [$(date)] Moving build artifacts for $codename to '$ZIP_DIR/$zipsubdir'" | tee -a $DEBUG_LOG
+        cd $SRC_DIR/out/target/product/$codename
+        for build in lineage-*.zip; do
+          sha256sum $build > $ZIP_DIR/$zipsubdir/$build.sha256sum
+        done
+        find . -name 'lineage-*.zip*' -type f -maxdepth 1 -exec mv {} $ZIP_DIR/$zipsubdir/ \; >> $DEBUG_LOG 2>&1
         cd $SRC_DIR
-        find out/target/product/$codename -name 'lineage-*.zip*' -exec mv {} $ZIP_DIR/$zipsubdir/ \; >> $DEBUG_LOG 2>&1
       else
         echo ">> [$(date)] Failed build for $codename" | tee -a $DEBUG_LOG
       fi

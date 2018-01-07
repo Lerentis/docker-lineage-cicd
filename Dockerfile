@@ -23,6 +23,11 @@ ENV USER root
 # WARNING: disabling this may slow down a lot your builds!
 ENV USE_CCACHE 1
 
+# ccache maximum size. It should be a number followed by an optional suffix: k,
+# M, G, T (decimal), Ki, Mi, Gi or Ti (binary). The default suffix is G. Use 0
+# for no limit.
+ENV CCACHE_SIZE 50G
+
 # Environment for the LineageOS Branch name
 # See https://github.com/LineageOS/android_vendor_cm/branches for possible options
 ENV BRANCH_NAME 'cm-14.1'
@@ -152,7 +157,7 @@ RUN apt-get install -y bc bison build-essential ccache cron curl flex \
       g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev \
       lib32readline6-dev lib32z1-dev libesd0-dev liblz4-tool libncurses5-dev \
       libsdl1.2-dev libssl-dev libwxgtk3.0-dev libxml2 libxml2-utils lzop \
-      openjdk-8-jdk pngcrush rsync schedtool squashfs-tools wget xdelta3 \
+      maven openjdk-8-jdk pngcrush rsync schedtool squashfs-tools wget xdelta3 \
       xsltproc zip zlib1g-dev
 
 RUN curl https://storage.googleapis.com/git-repo-downloads/repo > /usr/local/bin/repo
